@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dayIndex, setDayIndex] = useState(0);
   const [colorblindMode, setColorblindMode] = useState(false);
+  const [showGtaGrid, setShowGtaGrid] = useState(false);
   const [notifications, setNotifications] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -29,9 +30,10 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   const { data: neighborhoods, isLoading: neighborhoodsLoading } = useQuery<NeighborhoodsGeoJSON>({
-    queryKey: ['/api/neighborhoods', dayIndex],
+    queryKey: ['/api/neighborhoods', dayIndex, showGtaGrid],
     queryFn: async () => {
-      const response = await fetch(`/api/neighborhoods?dayIndex=${dayIndex}`);
+      const gridParam = showGtaGrid ? '&grid=true&cellSize=0.02' : '';
+      const response = await fetch(`/api/neighborhoods?dayIndex=${dayIndex}${gridParam}`);
       if (!response.ok) throw new Error('Failed to fetch neighborhoods');
       return response.json();
     },
@@ -232,6 +234,16 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold">ClimateCare AI</h1>
             <p className="text-sm text-muted-foreground">Real-time Climate Health Monitoring</p>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showGtaGrid ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={() => setShowGtaGrid(s => !s)}
+            data-testid="button-gta-grid"
+          >
+            {showGtaGrid ? 'Showing GTA Grid' : 'Show GTA Grid'}
+          </Button>
         </div>
         <div className="flex items-center gap-2">
           <Button

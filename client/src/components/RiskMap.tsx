@@ -185,6 +185,22 @@ export default function RiskMap({
           100, colorblindMode ? "#ca0020" : "#dc2626"
         ]);
       }
+      // Recalculate bounds to fit the newly provided neighborhoods (use filtered list to avoid very large bounds inflation)
+      try {
+        const bounds = new maplibregl.LngLatBounds();
+        filteredNeighborhoods.features.forEach((feature) => {
+          if (feature.geometry?.type === 'Polygon') {
+            feature.geometry.coordinates[0].forEach((coord: number[]) => bounds.extend(coord as [number, number]));
+          }
+        });
+
+        // Only fit if bounds are valid
+        if (!bounds.isEmpty()) {
+          map.current.fitBounds(bounds, { padding: 50 });
+        }
+      } catch (err) {
+        // ignore bounds errors
+      }
     }
   }, [neighborhoods, colorblindMode, zoom]);
 
