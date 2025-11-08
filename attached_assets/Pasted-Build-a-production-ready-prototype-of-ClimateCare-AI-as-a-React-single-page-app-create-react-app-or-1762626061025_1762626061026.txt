@@ -1,0 +1,163 @@
+Build a production-ready prototype of ClimateCare AI as a React single-page app (create-react-app or Vite) + a small Node/Express backend (in the same Replit project). Use only free data sources and live API calls. Use MapLibre GL JS for mapping and OpenStreetMap tile sources (no Mapbox tokens). Deliver a working Replit project that runs with npm start (frontend) and npm run dev (backend) or a single replit run command. Do not require any paid API keys — only accept optional free keys via environment variables with sensible fallbacks.
+
+Requirements & implementation details (implement all):
+
+Project scaffold
+
+Frontend: React (TypeScript preferred) with functional components and hooks.
+
+Backend: Node + Express that proxies external APIs (to avoid CORS), performs daily risk scoring, and serves simple alert webhook endpoints.
+
+Single repo in Replit with clear README and commands to run.
+
+Use modern folder layout: /client, /server.
+
+Map (MapLibre GL JS)
+
+Use MapLibre GL JS for the interactive map.
+
+Use free OSM raster tiles: https://tile.openstreetmap.org/{z}/{x}/{y}.png (or OpenMapTiles free endpoint if needed).
+
+Load and display a styled GeoJSON layer of neighborhoods (use a sample GeoJSON included in the repo for demo if census polygons unavailable). Provide a UI control to upload a GeoJSON to replace sample boundaries.
+
+Color neighborhoods by the daily Climate Health Risk Score (continuous color ramp).
+
+Clicking a neighborhood opens a popup with underlying metrics (Heat Stress Index, Cold Stress Index, AQ Risk Index, latest raw sensor/API values, and population vulnerability stats).
+
+Include a time slider to view forecasted risk for up to 7 days.
+
+Live data sources (FREE & live)
+
+Weather & forecast: Open-Meteo (free, no key). Use hourly/daily forecast for temperature, wind, humidity, precipitation, UV index.
+
+Example endpoint: https://api.open-meteo.com/v1/forecast?...
+
+Solar / radiation: NASA POWER (free, no key) for additional irradiance/temperature metrics. Use as fallback/augmentation.
+
+Air quality: OpenAQ (free, live) for PM2.5/PM10/NO2 where available.
+
+Satellite surface temperature / snow cover: pull a lightweight proxy:
+
+Use MODIS or Sentinel public tile / WMS if available without paid keys; if not feasible in demo, fetch a free public LST GeoTIFF tile or use a near-real-time raster sample from a public endpoint. Provide a clear fallback: compute approximate surface temp using Open-Meteo + land cover heuristic for the demo.
+
+Demographics / vulnerability: load Statistics Canada open CSV/GeoJSON if available, else include an example vulnerability GeoJSON for demo. Provide an importer for a CSV/GeoJSON from a public URL.
+
+All fetching must be live (no static snapshots). The server proxies calls to these APIs and caches responses for configurable TTL (e.g., 10–30 minutes).
+
+Lightweight risk model (implement in server)
+
+Compute three indices per neighborhood daily:
+
+Heat Stress Index (HSI) — combine max daily temp, humidity, and recent multi-day temperature anomaly (z-score) using a normalized scoring function (0–100).
+
+Cold Stress Index (CSI) — combine min daily temp, wind chill, snow cover persistence.
+
+Air Quality Risk Index (AQRI) — use nearest OpenAQ PM2.5/PM10 and NO₂, normalized to 0–100.
+
+Combine indices into a Climate Health Risk Score using weighted sum (configurable weights). Provide default weights: heat 0.4, cold 0.3, air 0.3.
+
+Expose /api/risk?lat=&lon=&date= and /api/neighborhoods endpoints returning GeoJSON with properties { hsi, csi, aqri, risk_score, raw }.
+
+Frontend features
+
+Dashboard landing with map + side panel showing:
+
+Summary cards (Highest risk neighborhoods, top drivers, current weather).
+
+Filter by risk level and by vulnerability (e.g., % seniors).
+
+Alerts panel (create test alerts).
+
+Simple community portal form: residents can submit requests (location, message); submissions stored in server memory/flat file.
+
+Neighborhood detail view with charts:
+
+Small time series charts (use Chart.js or Recharts) showing forecasted HSI/CSI/AQRI for next 7 days.
+
+Web Push notifications:
+
+Implement Web Push subscription (service worker) and a test “send alert” button that triggers push for subscribed clients. Use the Web Push protocol (no paid provider).
+
+Also implement an email webhook placeholder where admins can configure SMTP env vars (nodemailer) if they want to enable emails — but the app should work without any email config.
+
+Alerts & automation
+
+Server cron-like scheduler (use node-cron) to compute daily risks and store last result.
+
+Allow admin to configure thresholds per index; when threshold exceeded, enqueue alerts.
+
+Expose an endpoint /api/alerts/test to trigger alerts for testing.
+
+For SMS/email: implement an optional integration with free tiers only if the user provides keys (document environments). Otherwise default to console/log + web push.
+
+Dev ergonomics & docs
+
+README with:
+
+Setup instructions for Replit.
+
+Environment variables (optional) and fallbacks.
+
+How to swap in real census/GeoJSON, how to change weights and thresholds.
+
+Provide a single .env.example with names and descriptions.
+
+Provide seed demo data (small GeoJSON for a sample city with 6 neighborhoods and a small vulnerability CSV) so the app runs out of the box.
+
+Code quality & tests
+
+Clear modular structure, comments, and TypeScript types (if using TS).
+
+Linting and a minimal unit test for the risk scoring function.
+
+All network requests must use live endpoints at runtime — no embedding large static datasets in code (small sample demo GeoJSON allowed for demo).
+
+UX & accessibility
+
+Responsive layout, accessible color ramp for risk (include colorblind-safe option in settings).
+
+Clear legend explaining risk score to non-technical users and a one-click “explain this score” modal that shows how the three indices combined.
+
+Deliverables from the agent
+
+Fully working Replit project that the user can open and run immediately.
+
+A single long agent message that includes:
+
+What was created and where files live.
+
+How to run locally in Replit.
+
+A list of live APIs used with exact example endpoints used in code (so a maintainer can verify).
+
+Any optional env variables and how to enable email/SMS if desired.
+
+A short section describing how the risk model works (equations/pseudocode).
+
+Make no external paid dependencies, and do not require any paid API keys to run the demo.
+
+Implementation hints for the agent (do these):
+
+Use node-fetch/axios on server to call Open-Meteo, OpenAQ, and NASA POWER. Cache responses in memory with TTL.
+
+In client, use MapLibre GL React wrapper or plain MapLibre GL JS with React lifecycle hooks.
+
+For neighborhood aggregation: fetch point forecasts for a neighborhood centroid and average across centroids, or sample grid of points inside polygon (implement 5-point sampling per polygon for demo).
+
+For Web Push, use web-push library; store VAPID keys in env (auto-generate if not provided and persist in server file).
+
+Provide graceful fallbacks when air quality or satellite LST is missing — still compute risk from available sources and show a “data confidence” score per neighborhood.
+
+Make decisions for any unspecified detail and implement sensible defaults so the app runs immediately. Keep the architecture modular so each data source can be swapped later. Optimize for clarity and a usable demo — accuracy is important but this is a lightweight prototype.
+
+If you need to shorten scope for a first delivery, prioritize:
+
+Map with MapLibre + neighborhood GeoJSON.
+
+Live Open-Meteo + OpenAQ calls.
+
+Server risk scoring (HSI, AQRI) + map visualization + popups.
+
+Web Push test alerts.
+
+Now implement the full prototype following the above instructions.
