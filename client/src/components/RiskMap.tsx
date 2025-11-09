@@ -74,14 +74,20 @@ export default function RiskMap({
         source: "neighborhoods",
         paint: {
           "fill-color": [
-            "interpolate",
-            ["linear"],
-            ["get", "riskScore", ["get", "riskData"]],
-            0, colorblindMode ? "#0571b0" : "#22c55e",
-            25, colorblindMode ? "#92c5de" : "#84cc16",
-            50, colorblindMode ? "#f7f7f7" : "#eab308",
-            75, colorblindMode ? "#f4a582" : "#f97316",
-            100, colorblindMode ? "#ca0020" : "#dc2626"
+            "case",
+            ["has", "riskScore", ["get", "riskData"]],
+            [
+              "interpolate",
+              ["linear"],
+              ["get", "riskScore", ["get", "riskData"]],
+              0, colorblindMode ? "#0571b0" : "#22c55e",
+              25, colorblindMode ? "#92c5de" : "#84cc16",
+              50, colorblindMode ? "#f7f7f7" : "#eab308",
+              75, colorblindMode ? "#f4a582" : "#f97316",
+              100, colorblindMode ? "#ca0020" : "#dc2626"
+            ],
+            // Default color if no risk data
+            "#cccccc"
           ],
           "fill-opacity": 0.6,
         },
@@ -99,17 +105,67 @@ export default function RiskMap({
 
       map.current.on("click", "neighborhoods-fill", (e) => {
         if (e.features && e.features[0]) {
-          const name = e.features[0].properties?.name;
-          if (name && onNeighborhoodClick) {
+          const properties = e.features[0].properties;
+          const name = properties?.name || 'Unknown';
+          
+          if (onNeighborhoodClick) {
             onNeighborhoodClick(name);
           }
+          
+          // Parse riskData if it's a string
+          let riskData;
+          try {
+            riskData = properties?.riskData ? 
+              (typeof properties.riskData === 'string' ? JSON.parse(properties.riskData) : properties.riskData) 
+              : null;
+          } catch (e) {
+            riskData = null;
+          }
+          
+          const riskScore = riskData?.riskScore ?? 'N/A';
+          const hsi = riskData?.hsi ?? 'N/A';
+          const csi = riskData?.csi ?? 'N/A';
+          const aqri = riskData?.aqri ?? 'N/A';
+          const confidence = riskData?.confidence ?? 'N/A';
+          const temp = riskData?.raw?.weather?.temperature ?? 'N/A';
+          const pm25 = riskData?.raw?.airQuality?.pm25 ?? 'N/A';
           
           new maplibregl.Popup()
             .setLngLat(e.lngLat)
             .setHTML(`
-              <div class="p-2">
-                <h3 class="font-bold">${e.features[0].properties?.name}</h3>
-                <p class="text-sm">Risk Score: ${e.features[0].properties?.riskData?.riskScore || 'N/A'}</p>
+              <div class="p-3 min-w-[200px]">
+                <h3 class="font-bold text-base mb-2">${name}</h3>
+                <div class="space-y-1 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Risk Score:</span>
+                    <span class="font-semibold">${riskScore}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Temperature:</span>
+                    <span>${temp !== 'N/A' ? temp + '°C' : 'N/A'}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">PM2.5:</span>
+                    <span>${pm25 !== 'N/A' ? pm25 + ' µg/m³' : 'N/A'}</span>
+                  </div>
+                  <hr class="my-2">
+                  <div class="flex justify-between text-xs">
+                    <span class="text-gray-500">HSI:</span>
+                    <span>${hsi}</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-gray-500">CSI:</span>
+                    <span>${csi}</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-gray-500">AQRI:</span>
+                    <span>${aqri}</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-gray-500">Confidence:</span>
+                    <span>${confidence !== 'N/A' ? confidence + '%' : 'N/A'}</span>
+                  </div>
+                </div>
               </div>
             `)
             .addTo(map.current!);
@@ -138,17 +194,13 @@ export default function RiskMap({
   useEffect(() => {
     if (map.current && map.current.getSource("neighborhoods")) {
       // Filter neighborhoods based on zoom level
-      // At lower zoom levels, show fewer neighborhoods to improve performance
       const filteredNeighborhoods = {
         ...neighborhoods,
         features: neighborhoods.features.filter((feature, index) => {
-          // Show all neighborhoods at zoom >= 12
           if (zoom >= 12) return true;
-          // At lower zoom levels, show every Nth neighborhood based on zoom
-          // This creates a deterministic pattern that changes with zoom
-          if (zoom >= 10) return index % 2 === 0; // Show every other at zoom 10-11
-          if (zoom >= 8) return index % 3 === 0; // Show every 3rd at zoom 8-9
-          return index % 5 === 0; // Show every 5th at zoom < 8
+          if (zoom >= 10) return index % 2 === 0;
+          if (zoom >= 8) return index % 3 === 0;
+          return index % 5 === 0;
         })
       };
       
@@ -156,14 +208,19 @@ export default function RiskMap({
       
       if (map.current.getPaintProperty("neighborhoods-fill", "fill-color")) {
         map.current.setPaintProperty("neighborhoods-fill", "fill-color", [
-          "interpolate",
-          ["linear"],
-          ["get", "riskScore", ["get", "riskData"]],
-          0, colorblindMode ? "#0571b0" : "#22c55e",
-          25, colorblindMode ? "#92c5de" : "#84cc16",
-          50, colorblindMode ? "#f7f7f7" : "#eab308",
-          75, colorblindMode ? "#f4a582" : "#f97316",
-          100, colorblindMode ? "#ca0020" : "#dc2626"
+          "case",
+          ["has", "riskScore", ["get", "riskData"]],
+          [
+            "interpolate",
+            ["linear"],
+            ["get", "riskScore", ["get", "riskData"]],
+            0, colorblindMode ? "#0571b0" : "#22c55e",
+            25, colorblindMode ? "#92c5de" : "#84cc16",
+            50, colorblindMode ? "#f7f7f7" : "#eab308",
+            75, colorblindMode ? "#f4a582" : "#f97316",
+            100, colorblindMode ? "#ca0020" : "#dc2626"
+          ],
+          "#cccccc"
         ]);
       }
     }

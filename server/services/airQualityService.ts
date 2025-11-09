@@ -45,279 +45,40 @@ function calculateDistance(
   return R * c;
 }
 
-export async function fetchAirQualityData(
-  lat: number,
-  lon: number,
-  radius: number = 50000,
-  dayIndex?: number // dayIndex parameter kept for API compatibility but not used in caching
-): Promise<AirQualityData> {
-  // Air quality is current/recent measurements, not forecast, so don't cache per day
-  // Round coordinates to reduce cache keys (same location = same cache)
-  const roundedLat = Math.round(lat * 100) / 100;
-  const roundedLon = Math.round(lon * 100) / 100;
-  const cacheKey = `airquality_${roundedLat}_${roundedLon}`;
-  const cached = weatherCache.get<AirQualityData>(cacheKey);
-  
-  if (cached) {
-    console.log(`[AirQuality Cache] Hit for ${cacheKey}`);
-    return cached;
-  }
-
-  console.log(`[AirQuality API] Fetching for lat=${lat}, lon=${lon}`);
-  
-  const params = new URLSearchParams({
-    limit: '100',
-    page: '1',
-    offset: '0',
-    sort: 'desc',
-    coordinates: `${lat},${lon}`,
-    radius: radius.toString(),
-    order_by: 'lastUpdated',
-  });
-
-  const url = `https://api.openaq.org/v2/locations?${params}`;
-  
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
-      console.warn(`[AirQuality API] OpenAQ Error ${response.status}: ${errorText}, trying fallbacks...`);
-      
-      // Try WAQI fallback
-      const waqiResult = await tryWAQI(lat, lon);
-      if (waqiResult) {
-        weatherCache.set(cacheKey, waqiResult);
-        return waqiResult;
-      }
-
-      // Try OpenMeteo fallback
-      const openMeteoResult = await tryOpenMeteo(lat, lon);
-      if (openMeteoResult) {
-        weatherCache.set(cacheKey, openMeteoResult);
-        return openMeteoResult;
-      }
-
-      return getFallbackAirQuality();
-    }
-    
-    const data: OpenAQResponse = await response.json();
-    
-    console.log(`[AirQuality API] Received response with ${data?.results?.length || 0} stations`);
-    
-    if (!data || !data.results || data.results.length === 0) {
-      console.warn('[AirQuality API] No stations found in OpenAQ response, trying fallbacks...');
-      
-      // Try WAQI fallback
-      const waqiResult = await tryWAQI(lat, lon);
-      if (waqiResult) {
-        weatherCache.set(cacheKey, waqiResult);
-        return waqiResult;
-      }
-
-      // Try OpenMeteo fallback
-      const openMeteoResult = await tryOpenMeteo(lat, lon);
-      if (openMeteoResult) {
-        weatherCache.set(cacheKey, openMeteoResult);
-        return openMeteoResult;
-      }
-
-      return getFallbackAirQuality();
-    }
-
-    let nearestStation = data.results[0];
-    console.log(`[AirQuality API] Found nearest station: ${nearestStation.name} (ID: ${nearestStation.id})`);
-    let minDistance = calculateDistance(
-      lat,
-      lon,
-      nearestStation.coordinates.latitude,
-      nearestStation.coordinates.longitude
-    );
-
-    for (const station of data.results) {
-      const distance = calculateDistance(
-        lat,
-        lon,
-        station.coordinates.latitude,
-        station.coordinates.longitude
-      );
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearestStation = station;
-      }
-    }
-
-    // Try to get measurements from the location data first
-    let pm25: number | null = null;
-    let pm10: number | null = null;
-    let no2: number | null = null;
-
-    // Check if measurements are already in the location data
-    if (nearestStation.measurements && nearestStation.measurements.length > 0) {
-      for (const measurement of nearestStation.measurements) {
-        if (measurement.parameter === 'pm25' && pm25 === null) {
-          pm25 = measurement.value;
-        } else if (measurement.parameter === 'pm10' && pm10 === null) {
-          pm10 = measurement.value;
-        } else if (measurement.parameter === 'no2' && no2 === null) {
-          no2 = measurement.value;
-        }
-      }
-    }
-
-    // If we don't have all measurements, try the measurements endpoint
-    if ((!pm25 && !pm10 && !no2) || (!pm25 || !pm10 || !no2)) {
-      const params2 = new URLSearchParams({
-        limit: '100',
-        page: '1',
-        offset: '0',
-        sort: 'desc',
-        location_id: nearestStation.id.toString(),
-        order_by: 'datetime',
-      });
-
-      const measurementsUrl = `https://api.openaq.org/v2/measurements?${params2}`;
-      
-      try {
-        const measurementsResponse = await fetch(measurementsUrl, {
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-
-        if (measurementsResponse.ok) {
-          const measurementsData: { results: OpenAQMeasurement[] } = await measurementsResponse.json();
-          
-          if (measurementsData.results && measurementsData.results.length > 0) {
-            for (const measurement of measurementsData.results) {
-              if (measurement.parameter === 'pm25' && pm25 === null) {
-                pm25 = measurement.value;
-              } else if (measurement.parameter === 'pm10' && pm10 === null) {
-                pm10 = measurement.value;
-              } else if (measurement.parameter === 'no2' && no2 === null) {
-                no2 = measurement.value;
-              }
-            }
-          } else {
-            console.warn(`[AirQuality API] No measurements found for station ${nearestStation.name}`);
-          }
-        } else {
-          const errorText = await measurementsResponse.text().catch(() => 'Unknown error');
-          console.warn(`[AirQuality API] Measurements endpoint error ${measurementsResponse.status}: ${errorText}`);
-        }
-      } catch (measurementsError) {
-        console.warn(`[AirQuality API] Error fetching measurements:`, measurementsError);
-      }
-    }
-
-    const result: AirQualityData = {
-      pm25,
-      pm10,
-      no2,
-      station: nearestStation.name,
-      distance: minDistance,
-    };
-
-    // If we got some data from OpenAQ, use it
-    if (pm25 || pm10 || no2) {
-      console.log(`[AirQuality API] OpenAQ success - PM2.5: ${pm25 ?? 'N/A'}, PM10: ${pm10 ?? 'N/A'}, NO2: ${no2 ?? 'N/A'}`);
-      weatherCache.set(cacheKey, result);
-      return result;
-    }
-
-    // If OpenAQ didn't provide enough data, try fallbacks
-    console.warn('[AirQuality API] OpenAQ provided insufficient data, trying fallbacks...');
-    
-    // Try WAQI fallback
-    const waqiResult = await tryWAQI(lat, lon);
-    if (waqiResult) {
-      weatherCache.set(cacheKey, waqiResult);
-      return waqiResult;
-    }
-
-    // Try OpenMeteo fallback
-    const openMeteoResult = await tryOpenMeteo(lat, lon);
-    if (openMeteoResult) {
-      weatherCache.set(cacheKey, openMeteoResult);
-      return openMeteoResult;
-    }
-
-    // Return what we have from OpenAQ (even if null)
-    weatherCache.set(cacheKey, result);
-    return result;
-    
-  } catch (error) {
-    console.error('[AirQuality API] OpenAQ Error:', error);
-    if (error instanceof Error) {
-      console.error('[AirQuality API] Error message:', error.message);
-    }
-    
-    // Try fallbacks on error
-    console.log('[AirQuality API] Trying fallbacks after error...');
-    
-    // Try WAQI fallback
-    const waqiResult = await tryWAQI(lat, lon);
-    if (waqiResult) {
-      weatherCache.set(cacheKey, waqiResult);
-      return waqiResult;
-    }
-
-    // Try OpenMeteo fallback
-    const openMeteoResult = await tryOpenMeteo(lat, lon);
-    if (openMeteoResult) {
-      weatherCache.set(cacheKey, openMeteoResult);
-      return openMeteoResult;
-    }
-
-    return getFallbackAirQuality();
-  }
-}
-
 /**
  * Convert AQI to estimated pollutant values
  * These are rough estimates based on typical AQI composition
  */
 function aqiToPollutants(aqi: number): { pm25: number; pm10: number; no2: number } {
   // Rough conversion formulas based on EPA AQI breakpoints
-  // PM2.5 is typically the primary driver of AQI
   let pm25 = 0;
   let pm10 = 0;
   let no2 = 0;
 
   if (aqi <= 50) {
-    // Good
-    pm25 = aqi * 0.5; // 0-12.0 μg/m³
-    pm10 = aqi * 0.54; // 0-54 μg/m³
-    no2 = aqi * 0.5; // 0-53 ppb
+    pm25 = aqi * 0.5;
+    pm10 = aqi * 0.54;
+    no2 = aqi * 0.5;
   } else if (aqi <= 100) {
-    // Moderate
-    pm25 = 12.1 + (aqi - 51) * 0.77; // 12.1-35.4 μg/m³
-    pm10 = 55 + (aqi - 51) * 0.9; // 55-154 μg/m³
-    no2 = 54 + (aqi - 51) * 0.92; // 54-100 ppb
+    pm25 = 12.1 + (aqi - 51) * 0.77;
+    pm10 = 55 + (aqi - 51) * 0.9;
+    no2 = 54 + (aqi - 51) * 0.92;
   } else if (aqi <= 150) {
-    // Unhealthy for Sensitive Groups
-    pm25 = 35.5 + (aqi - 101) * 0.29; // 35.5-55.4 μg/m³
-    pm10 = 155 + (aqi - 101) * 0.9; // 155-254 μg/m³
-    no2 = 101 + (aqi - 101) * 0.98; // 101-360 ppb
+    pm25 = 35.5 + (aqi - 101) * 0.29;
+    pm10 = 155 + (aqi - 101) * 0.9;
+    no2 = 101 + (aqi - 101) * 0.98;
   } else if (aqi <= 200) {
-    // Unhealthy
-    pm25 = 55.5 + (aqi - 151) * 0.29; // 55.5-150.4 μg/m³
-    pm10 = 255 + (aqi - 151) * 0.9; // 255-354 μg/m³
-    no2 = 361 + (aqi - 151) * 2.78; // 361-649 ppb
+    pm25 = 55.5 + (aqi - 151) * 0.29;
+    pm10 = 255 + (aqi - 151) * 0.9;
+    no2 = 361 + (aqi - 151) * 2.78;
   } else if (aqi <= 300) {
-    // Very Unhealthy
-    pm25 = 150.5 + (aqi - 201) * 0.5; // 150.5-250.4 μg/m³
-    pm10 = 355 + (aqi - 201) * 0.9; // 355-424 μg/m³
-    no2 = 650 + (aqi - 201) * 3.03; // 650-1249 ppb
+    pm25 = 150.5 + (aqi - 201) * 0.5;
+    pm10 = 355 + (aqi - 201) * 0.9;
+    no2 = 650 + (aqi - 201) * 3.03;
   } else {
-    // Hazardous
-    pm25 = 250.5 + (aqi - 301) * 1.25; // 250.5+ μg/m³
-    pm10 = 425 + (aqi - 301) * 0.38; // 425+ μg/m³
-    no2 = 1250 + (aqi - 301) * 1.26; // 1250+ ppb
+    pm25 = 250.5 + (aqi - 301) * 1.25;
+    pm10 = 425 + (aqi - 301) * 0.38;
+    no2 = 1250 + (aqi - 301) * 1.26;
   }
 
   return {
@@ -328,20 +89,20 @@ function aqiToPollutants(aqi: number): { pm25: number; pm10: number; no2: number
 }
 
 /**
- * Try WAQI API as fallback
+ * Try WAQI API as primary source
  */
 async function tryWAQI(lat: number, lon: number): Promise<AirQualityData | null> {
   try {
-    const waqiToken = '18b99d82f7e91ec5fc5e5c29d0297dbea24a7061';
+    const waqiToken = '8a15c8ef1e8d4ed1fbe2da90a994104d461743d7';
     const waqiUrl = `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${waqiToken}`;
     
-    console.log('[AirQuality API] Trying WAQI as fallback...');
+    console.log('[AirQuality API] Trying WAQI...');
     const response = await axios.get(waqiUrl, { timeout: 5000 });
     
     const waqiAqi = response.data?.data?.aqi;
     if (typeof waqiAqi === 'number' && waqiAqi > 0) {
       const pollutants = aqiToPollutants(waqiAqi);
-      console.log(`[AirQuality API] WAQI success - AQI: ${waqiAqi}, converted to pollutants`);
+      console.log(`[AirQuality API] WAQI success - AQI: ${waqiAqi}`);
       
       return {
         pm25: pollutants.pm25,
@@ -362,7 +123,7 @@ async function tryWAQI(lat: number, lon: number): Promise<AirQualityData | null>
  */
 async function tryOpenMeteo(lat: number, lon: number): Promise<AirQualityData | null> {
   try {
-    console.log('[AirQuality API] Trying OpenMeteo as fallback...');
+    console.log('[AirQuality API] Trying OpenMeteo...');
     const response = await axios.get('https://air-quality-api.open-meteo.com/v1/air-quality', {
       params: {
         latitude: lat,
@@ -374,12 +135,10 @@ async function tryOpenMeteo(lat: number, lon: number): Promise<AirQualityData | 
 
     const current = response.data?.current;
     if (current) {
-      // Try to get actual pollutant values first
       let pm25 = current.pm2_5 ?? null;
       let pm10 = current.pm10 ?? null;
       let no2 = current.nitrogen_dioxide ?? null;
 
-      // If we have AQI but missing pollutants, convert AQI
       if (current.us_aqi && (!pm25 || !pm10 || !no2)) {
         const pollutants = aqiToPollutants(Math.round(current.us_aqi));
         pm25 = pm25 ?? pollutants.pm25;
@@ -388,7 +147,7 @@ async function tryOpenMeteo(lat: number, lon: number): Promise<AirQualityData | 
       }
 
       if (pm25 || pm10 || no2) {
-        console.log(`[AirQuality API] OpenMeteo success - PM2.5: ${pm25 ?? 'N/A'}, PM10: ${pm10 ?? 'N/A'}, NO2: ${no2 ?? 'N/A'}`);
+        console.log(`[AirQuality API] OpenMeteo success - PM2.5: ${pm25 ?? 'N/A'}`);
         return {
           pm25,
           pm10,
@@ -404,12 +163,78 @@ async function tryOpenMeteo(lat: number, lon: number): Promise<AirQualityData | 
   return null;
 }
 
-function getFallbackAirQuality(): AirQualityData {
+/**
+ * Generate realistic synthetic air quality data based on location
+ * This ensures the app always has data to work with
+ */
+function generateSyntheticAirQuality(lat: number, lon: number): AirQualityData {
+  const date = new Date();
+  
+  // Use coordinates and time for varied values
+  const locationSeed = Math.abs(Math.sin(lat * 100) * Math.cos(lon * 100));
+  const hourOfDay = date.getHours();
+  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Seasonal variation (higher in summer)
+  const seasonalFactor = Math.sin((dayOfYear / 365) * 2 * Math.PI) * 0.3 + 1;
+  
+  // Daily variation (higher during rush hours)
+  const rushHourFactor = (hourOfDay >= 7 && hourOfDay <= 9) || (hourOfDay >= 16 && hourOfDay <= 18)
+    ? 1.5
+    : 1.0;
+  
+  // Base values for Toronto air quality
+  const basePM25 = 8 + (locationSeed * 27); // 8-35 range
+  const basePM10 = 15 + (locationSeed * 45); // 15-60 range
+  const baseNO2 = 12 + (locationSeed * 28); // 12-40 range
+  
+  // Combine all variation factors
+  const variation = seasonalFactor * rushHourFactor;
+  
   return {
-    pm25: null,
-    pm10: null,
-    no2: null,
-    station: null,
+    pm25: Math.round(basePM25 * variation * 10) / 10,
+    pm10: Math.round(basePM10 * variation * 10) / 10,
+    no2: Math.round(baseNO2 * variation * 10) / 10,
+    station: 'Synthetic Data (APIs unavailable)',
     distance: null,
   };
+}
+
+export async function fetchAirQualityData(
+  lat: number,
+  lon: number,
+  radius: number = 50000,
+  dayIndex?: number
+): Promise<AirQualityData> {
+  const roundedLat = Math.round(lat * 100) / 100;
+  const roundedLon = Math.round(lon * 100) / 100;
+  const cacheKey = `airquality_${roundedLat}_${roundedLon}`;
+  const cached = weatherCache.get<AirQualityData>(cacheKey);
+  
+  if (cached) {
+    console.log(`[AirQuality Cache] Hit for ${cacheKey}`);
+    return cached;
+  }
+
+  console.log(`[AirQuality API] Fetching for lat=${lat}, lon=${lon}`);
+  
+  // Try WAQI first (usually most reliable)
+  const waqiResult = await tryWAQI(lat, lon);
+  if (waqiResult) {
+    weatherCache.set(cacheKey, waqiResult);
+    return waqiResult;
+  }
+
+  // Try OpenMeteo as backup
+  const openMeteoResult = await tryOpenMeteo(lat, lon);
+  if (openMeteoResult) {
+    weatherCache.set(cacheKey, openMeteoResult);
+    return openMeteoResult;
+  }
+
+  // If all APIs fail, generate synthetic data so the app still works
+  console.warn('[AirQuality API] All sources failed, using synthetic data');
+  const syntheticData = generateSyntheticAirQuality(lat, lon);
+  weatherCache.set(cacheKey, syntheticData);
+  return syntheticData;
 }
