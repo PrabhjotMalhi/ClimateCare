@@ -200,10 +200,28 @@ export default function Dashboard() {
       }
 
       if (riskData.riskScore > 60) {
-        atRiskPop += Math.round(population * (seniorPercent / 100));
+        // Prefer server-provided atRiskPopulationHigh (count when risk is high)
+        if (feature.properties?.atRiskPopulationHigh != null) {
+          atRiskPop += Number(feature.properties.atRiskPopulationHigh);
+        } else if (feature.properties?.atRiskPopulation != null) {
+          // Fallback to the general at-risk estimate if the high-risk count isn't present
+          atRiskPop += Number(feature.properties.atRiskPopulation);
+        } else if (population) {
+          const vulnerablePercent = feature.properties.vulnerabilityScore ?? seniorPercent ?? 0;
+          atRiskPop += Math.round(population * (vulnerablePercent / 100));
+        }
       }
 
       count++;
+    }
+
+    // If no neighborhoods were flagged high-risk (atRiskPop === 0) fall back to summing
+    // the general atRiskPopulation across all neighborhoods so the metric is informative.
+    if (atRiskPop === 0) {
+      for (const feature of neighborhoods.features) {
+        const pop = feature.properties?.atRiskPopulation;
+        if (pop != null) atRiskPop += Number(pop);
+      }
     }
 
     return {

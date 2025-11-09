@@ -53,6 +53,10 @@ export interface NeighborhoodProperties {
   seniorPercent: number;
   vulnerabilityScore: number;
   riskData?: RiskData;
+  // Optional server-provided estimate of the number of people at risk in this neighborhood
+  atRiskPopulation?: number;
+  // Optional server-provided count of at-risk people when the calculated risk is high
+  atRiskPopulationHigh?: number;
 }
 
 export type NeighborhoodFeature = Feature<Geometry, NeighborhoodProperties>;
