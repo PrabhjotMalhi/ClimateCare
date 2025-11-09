@@ -12,6 +12,7 @@ import SummaryCard from "@/components/SummaryCard";
 import RiskChart from "@/components/RiskChart";
 import AlertPanel from "@/components/AlertPanel";
 import CommunityForm from "@/components/CommunityForm";
+import CommunityFeed from "@/components/CommunityFeed";
 import RiskScoreModal from "@/components/RiskScoreModal";
 import SettingsPanel from "@/components/SettingsPanel";
 import { AlertTriangle, Thermometer, Wind, Users } from "lucide-react";
@@ -199,10 +200,28 @@ export default function Dashboard() {
       }
 
       if (riskData.riskScore > 60) {
-        atRiskPop += Math.round(population * (seniorPercent / 100));
+        // Prefer server-provided atRiskPopulationHigh (count when risk is high)
+        if (feature.properties?.atRiskPopulationHigh != null) {
+          atRiskPop += Number(feature.properties.atRiskPopulationHigh);
+        } else if (feature.properties?.atRiskPopulation != null) {
+          // Fallback to the general at-risk estimate if the high-risk count isn't present
+          atRiskPop += Number(feature.properties.atRiskPopulation);
+        } else if (population) {
+          const vulnerablePercent = feature.properties.vulnerabilityScore ?? seniorPercent ?? 0;
+          atRiskPop += Math.round(population * (vulnerablePercent / 100));
+        }
       }
 
       count++;
+    }
+
+    // If no neighborhoods were flagged high-risk (atRiskPop === 0) fall back to summing
+    // the general atRiskPopulation across all neighborhoods so the metric is informative.
+    if (atRiskPop === 0) {
+      for (const feature of neighborhoods.features) {
+        const pop = feature.properties?.atRiskPopulation;
+        if (pop != null) atRiskPop += Number(pop);
+      }
     }
 
     return {
@@ -229,7 +248,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <MapPin className="h-6 w-6 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold">ClimateCare AI</h1>
+            <h1 className="text-2xl font-bold">ClimateCare</h1>
             <p className="text-sm text-muted-foreground">Real-time Climate Health Monitoring</p>
           </div>
         </div>
@@ -261,7 +280,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         <div className="flex-1 flex flex-col p-4 gap-4">
           <div className="flex-1 relative">
             <RiskMap 
@@ -278,11 +297,10 @@ export default function Dashboard() {
             onDateChange={handleDateChange} 
             onDayIndexChange={setDayIndex}
             dayIndex={dayIndex}
-            initialDate={selectedDate} 
           />
         </div>
 
-        <div className="w-[450px] border-l overflow-y-auto">
+  <div className="w-full md:w-[450px] border-t md:border-t-0 md:border-l overflow-y-auto">
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="w-full grid grid-cols-3">
               <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
@@ -352,8 +370,11 @@ export default function Dashboard() {
               />
             </TabsContent>
 
-            <TabsContent value="community" className="p-4">
-              <CommunityForm onSubmit={(data) => submitCommunityMutation.mutate(data)} />
+            <TabsContent value="community" className="p-4 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CommunityForm onSubmit={(data) => submitCommunityMutation.mutate(data)} />
+                <CommunityFeed />
+              </div>
             </TabsContent>
           </Tabs>
         </div>

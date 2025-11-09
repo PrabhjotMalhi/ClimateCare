@@ -32,7 +32,7 @@ export default function SettingsPanel({
         <SheetHeader>
           <SheetTitle>Settings</SheetTitle>
           <SheetDescription>
-            Customize your ClimateCare AI experience
+            Customize your ClimateCare experience
           </SheetDescription>
         </SheetHeader>
 

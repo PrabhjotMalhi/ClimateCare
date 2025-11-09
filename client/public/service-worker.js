@@ -1,6 +1,6 @@
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || 'ClimateCare AI';
+  const title = data.title || 'ClimateCare';
   const options = {
     body: data.body || 'New alert',
     icon: data.icon || '/favicon.png',

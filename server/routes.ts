@@ -6,6 +6,7 @@ import { fetchAirQualityData } from "./services/airQualityService";
 import { calculateCompleteRisk, defaultRiskConfig } from "./services/riskEngine";
 import { insertCommunitySubmissionSchema, type NeighborhoodsGeoJSON } from "@shared/schema";
 import { webPushService } from "./services/webPushService";
+import { setupWebSocketServer } from "./services/webSocketService";
 import multer from "multer";
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -27,12 +28,25 @@ function getCentroid(coordinates: number[][][]): [number, number] {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const httpServer = createServer(app);
+  const webSocketServer = setupWebSocketServer();
   app.get("/api/neighborhoods", async (req, res) => {
     try {
       const date = (req.query.date as string) || new Date().toISOString();
       const dayIndex = req.query.dayIndex ? parseInt(req.query.dayIndex as string) : 0;
-
       const neighborhoods = await storage.getNeighborhoods();
+
+      // Fetch country-level elderly percent (used as fallback/anchor for at-risk estimates)
+      // Country code can be configured via env, default to 'CA'.
+      let elderlyPercent: number | null = null;
+      try {
+        const { getElderlyPercent } = await import("./services/demographicsService");
+        const countryCode = process.env.DEMO_COUNTRY_CODE || 'CA';
+        elderlyPercent = await getElderlyPercent(countryCode);
+        if (elderlyPercent) console.log(`[Demographics] Elderly % for ${countryCode}: ${elderlyPercent}`);
+      } catch (err) {
+        console.warn('[Routes] Could not fetch demographics data, continuing without it', err);
+      }
       
       // Process neighborhoods in parallel batches to avoid blocking
       const batchSize = 10;
@@ -67,11 +81,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 defaultRiskConfig
               );
 
+              // Compute server-side at-risk population estimate for this neighborhood
+              // atRiskPopulation: estimated number of vulnerable people (based on vulnerabilityPercent)
+              // atRiskPopulationHigh: same value but only when the calculated risk is considered high (>60)
+              let atRiskPopulation: number | undefined = undefined;
+              let atRiskPopulationHigh: number | undefined = undefined;
+              try {
+                const population = feature.properties.population ?? null;
+                const vulnerablePercent = feature.properties.vulnerabilityScore ?? elderlyPercent ?? feature.properties.seniorPercent ?? 0;
+                if (population) {
+                  atRiskPopulation = Math.round(population * (vulnerablePercent / 100));
+                  atRiskPopulationHigh = riskData.riskScore > 60 ? atRiskPopulation : 0;
+                }
+              } catch (err) {
+                atRiskPopulation = undefined;
+                atRiskPopulationHigh = undefined;
+              }
+
               return {
                 ...feature,
                 properties: {
                   ...feature.properties,
                   riskData,
+                  atRiskPopulation,
+                  atRiskPopulationHigh,
                 },
               };
             } catch (error) {
@@ -175,6 +208,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCommunitySubmissionSchema.parse(req.body);
       const submission = await storage.addCommunitySubmission(validatedData);
+      
+      // Broadcast the new submission to all connected clients
+      webSocketServer.broadcastNewSubmission(submission);
+      
       res.json(submission);
     } catch (error) {
       console.error("Error creating community submission:", error);
@@ -239,8 +276,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to send test notification" });
     }
   });
-
-  const httpServer = createServer(app);
 
   return httpServer;
 }

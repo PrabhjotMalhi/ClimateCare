@@ -6,55 +6,17 @@
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
-          [-79.39, 43.65],
-          [-79.38, 43.65],
-          [-79.38, 43.66],
-          [-79.39, 43.66],
-          [-79.39, 43.65]
+          [-79.4200, 43.6400],
+          [-79.4000, 43.6400],
+          [-79.4000, 43.6550],
+          [-79.4200, 43.6550],
+          [-79.4200, 43.6400]
         ]]
       },
       "properties": {
-        "name": "Downtown",
-        "population": 15000,
-        "seniorPercent": 18,
-        "vulnerabilityScore": 75
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [-79.38, 43.65],
-          [-79.37, 43.65],
-          [-79.37, 43.66],
-          [-79.38, 43.66],
-          [-79.38, 43.65]
-        ]]
-      },
-      "properties": {
-        "name": "Riverside",
-        "population": 12000,
-        "seniorPercent": 22,
-        "vulnerabilityScore": 68
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [-79.40, 43.66],
-          [-79.39, 43.66],
-          [-79.39, 43.67],
-          [-79.40, 43.67],
-          [-79.40, 43.66]
-        ]]
-      },
-      "properties": {
-        "name": "North Hills",
-        "population": 18000,
-        "seniorPercent": 15,
+        "name": "The Annex",
+        "population": 23000,
+        "seniorPercent": 12,
         "vulnerabilityScore": 55
       }
     },
@@ -63,17 +25,36 @@
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
-          [-79.37, 43.66],
-          [-79.36, 43.66],
-          [-79.36, 43.67],
-          [-79.37, 43.67],
-          [-79.37, 43.66]
+          [-79.4000, 43.6400],
+          [-79.3800, 43.6400],
+          [-79.3800, 43.6550],
+          [-79.4000, 43.6550],
+          [-79.4000, 43.6400]
         ]]
       },
       "properties": {
-        "name": "East Side",
-        "population": 20000,
-        "seniorPercent": 12,
+        "name": "Downtown Core",
+        "population": 35000,
+        "seniorPercent": 15,
+        "vulnerabilityScore": 72
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3800, 43.6400],
+          [-79.3600, 43.6400],
+          [-79.3600, 43.6550],
+          [-79.3800, 43.6550],
+          [-79.3800, 43.6400]
+        ]]
+      },
+      "properties": {
+        "name": "Cabbagetown",
+        "population": 18000,
+        "seniorPercent": 18,
         "vulnerabilityScore": 62
       }
     },
@@ -82,18 +63,18 @@
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
-          [-79.40, 43.64],
-          [-79.39, 43.64],
-          [-79.39, 43.65],
-          [-79.40, 43.65],
-          [-79.40, 43.64]
+          [-79.3600, 43.6400],
+          [-79.3400, 43.6400],
+          [-79.3400, 43.6550],
+          [-79.3600, 43.6550],
+          [-79.3600, 43.6400]
         ]]
       },
       "properties": {
-        "name": "Industrial District",
-        "population": 8000,
-        "seniorPercent": 8,
-        "vulnerabilityScore": 80
+        "name": "Riverdale",
+        "population": 22000,
+        "seniorPercent": 20,
+        "vulnerabilityScore": 58
       }
     },
     {
@@ -101,18 +82,645 @@
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
-          [-79.38, 43.64],
-          [-79.37, 43.64],
-          [-79.37, 43.65],
-          [-79.38, 43.65],
-          [-79.38, 43.64]
+          [-79.4200, 43.6550],
+          [-79.4000, 43.6550],
+          [-79.4000, 43.6700],
+          [-79.4200, 43.6700],
+          [-79.4200, 43.6550]
         ]]
       },
       "properties": {
-        "name": "Parkside",
+        "name": "Yorkville",
+        "population": 19000,
+        "seniorPercent": 22,
+        "vulnerabilityScore": 48
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4000, 43.6550],
+          [-79.3800, 43.6550],
+          [-79.3800, 43.6700],
+          [-79.4000, 43.6700],
+          [-79.4000, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "Rosedale",
+        "population": 15000,
+        "seniorPercent": 25,
+        "vulnerabilityScore": 45
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3800, 43.6550],
+          [-79.3600, 43.6550],
+          [-79.3600, 43.6700],
+          [-79.3800, 43.6700],
+          [-79.3800, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "Moore Park",
+        "population": 12000,
+        "seniorPercent": 28,
+        "vulnerabilityScore": 42
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3600, 43.6550],
+          [-79.3400, 43.6550],
+          [-79.3400, 43.6700],
+          [-79.3600, 43.6700],
+          [-79.3600, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "Danforth",
+        "population": 25000,
+        "seniorPercent": 16,
+        "vulnerabilityScore": 60
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4200, 43.6700],
+          [-79.4000, 43.6700],
+          [-79.4000, 43.6850],
+          [-79.4200, 43.6850],
+          [-79.4200, 43.6700]
+        ]]
+      },
+      "properties": {
+        "name": "Forest Hill",
+        "population": 14000,
+        "seniorPercent": 30,
+        "vulnerabilityScore": 38
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4000, 43.6700],
+          [-79.3800, 43.6700],
+          [-79.3800, 43.6850],
+          [-79.4000, 43.6850],
+          [-79.4000, 43.6700]
+        ]]
+      },
+      "properties": {
+        "name": "Summerhill",
+        "population": 16000,
+        "seniorPercent": 24,
+        "vulnerabilityScore": 50
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3800, 43.6700],
+          [-79.3600, 43.6700],
+          [-79.3600, 43.6850],
+          [-79.3800, 43.6850],
+          [-79.3800, 43.6700]
+        ]]
+      },
+      "properties": {
+        "name": "Davisville",
+        "population": 18000,
+        "seniorPercent": 19,
+        "vulnerabilityScore": 54
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3600, 43.6700],
+          [-79.3400, 43.6700],
+          [-79.3400, 43.6850],
+          [-79.3600, 43.6850],
+          [-79.3600, 43.6700]
+        ]]
+      },
+      "properties": {
+        "name": "Leaside",
+        "population": 20000,
+        "seniorPercent": 22,
+        "vulnerabilityScore": 48
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4400, 43.6400],
+          [-79.4200, 43.6400],
+          [-79.4200, 43.6550],
+          [-79.4400, 43.6550],
+          [-79.4400, 43.6400]
+        ]]
+      },
+      "properties": {
+        "name": "Little Italy",
+        "population": 17000,
+        "seniorPercent": 14,
+        "vulnerabilityScore": 64
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4400, 43.6550],
+          [-79.4200, 43.6550],
+          [-79.4200, 43.6700],
+          [-79.4400, 43.6700],
+          [-79.4400, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "Corso Italia",
+        "population": 14000,
+        "seniorPercent": 26,
+        "vulnerabilityScore": 52
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4600, 43.6400],
+          [-79.4400, 43.6400],
+          [-79.4400, 43.6550],
+          [-79.4600, 43.6550],
+          [-79.4600, 43.6400]
+        ]]
+      },
+      "properties": {
+        "name": "Trinity Bellwoods",
+        "population": 16000,
+        "seniorPercent": 11,
+        "vulnerabilityScore": 66
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4600, 43.6550],
+          [-79.4400, 43.6550],
+          [-79.4400, 43.6700],
+          [-79.4600, 43.6700],
+          [-79.4600, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "Dovercourt Park",
+        "population": 13000,
+        "seniorPercent": 16,
+        "vulnerabilityScore": 62
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3400, 43.6400],
+          [-79.3200, 43.6400],
+          [-79.3200, 43.6550],
+          [-79.3400, 43.6550],
+          [-79.3400, 43.6400]
+        ]]
+      },
+      "properties": {
+        "name": "Leslieville",
+        "population": 21000,
+        "seniorPercent": 17,
+        "vulnerabilityScore": 56
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3400, 43.6550],
+          [-79.3200, 43.6550],
+          [-79.3200, 43.6700],
+          [-79.3400, 43.6700],
+          [-79.3400, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "East York",
+        "population": 24000,
+        "seniorPercent": 21,
+        "vulnerabilityScore": 58
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4200, 43.6250],
+          [-79.4000, 43.6250],
+          [-79.4000, 43.6400],
+          [-79.4200, 43.6400],
+          [-79.4200, 43.6250]
+        ]]
+      },
+      "properties": {
+        "name": "King West",
+        "population": 27000,
+        "seniorPercent": 9,
+        "vulnerabilityScore": 68
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4000, 43.6250],
+          [-79.3800, 43.6250],
+          [-79.3800, 43.6400],
+          [-79.4000, 43.6400],
+          [-79.4000, 43.6250]
+        ]]
+      },
+      "properties": {
+        "name": "Financial District",
+        "population": 8000,
+        "seniorPercent": 5,
+        "vulnerabilityScore": 75
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3800, 43.6250],
+          [-79.3600, 43.6250],
+          [-79.3600, 43.6400],
+          [-79.3800, 43.6400],
+          [-79.3800, 43.6250]
+        ]]
+      },
+      "properties": {
+        "name": "St. Lawrence",
+        "population": 15000,
+        "seniorPercent": 12,
+        "vulnerabilityScore": 65
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3600, 43.6250],
+          [-79.3400, 43.6250],
+          [-79.3400, 43.6400],
+          [-79.3600, 43.6400],
+          [-79.3600, 43.6250]
+        ]]
+      },
+      "properties": {
+        "name": "Port Lands",
+        "population": 3000,
+        "seniorPercent": 7,
+        "vulnerabilityScore": 78
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4600, 43.6250],
+          [-79.4400, 43.6250],
+          [-79.4400, 43.6400],
+          [-79.4600, 43.6400],
+          [-79.4600, 43.6250]
+        ]]
+      },
+      "properties": {
+        "name": "Liberty Village",
+        "population": 19000,
+        "seniorPercent": 8,
+        "vulnerabilityScore": 70
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4800, 43.6400],
+          [-79.4600, 43.6400],
+          [-79.4600, 43.6550],
+          [-79.4800, 43.6550],
+          [-79.4800, 43.6400]
+        ]]
+      },
+      "properties": {
+        "name": "Junction Triangle",
+        "population": 11000,
+        "seniorPercent": 13,
+        "vulnerabilityScore": 67
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4800, 43.6550],
+          [-79.4600, 43.6550],
+          [-79.4600, 43.6700],
+          [-79.4800, 43.6700],
+          [-79.4800, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "The Junction",
+        "population": 16000,
+        "seniorPercent": 18,
+        "vulnerabilityScore": 61
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4400, 43.6700],
+          [-79.4200, 43.6700],
+          [-79.4200, 43.6850],
+          [-79.4400, 43.6850],
+          [-79.4400, 43.6700]
+        ]]
+      },
+      "properties": {
+        "name": "Cedarvale",
+        "population": 12000,
+        "seniorPercent": 27,
+        "vulnerabilityScore": 46
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4600, 43.6700],
+          [-79.4400, 43.6700],
+          [-79.4400, 43.6850],
+          [-79.4600, 43.6850],
+          [-79.4600, 43.6700]
+        ]]
+      },
+      "properties": {
+        "name": "Fairbank",
         "population": 14000,
         "seniorPercent": 20,
+        "vulnerabilityScore": 58
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4800, 43.6700],
+          [-79.4600, 43.6700],
+          [-79.4600, 43.6850],
+          [-79.4800, 43.6850],
+          [-79.4800, 43.6700]
+        ]]
+      },
+      "properties": {
+        "name": "Caledonia",
+        "population": 15000,
+        "seniorPercent": 19,
+        "vulnerabilityScore": 60
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3200, 43.6400],
+          [-79.3000, 43.6400],
+          [-79.3000, 43.6550],
+          [-79.3200, 43.6550],
+          [-79.3200, 43.6400]
+        ]]
+      },
+      "properties": {
+        "name": "Beaches",
+        "population": 22000,
+        "seniorPercent": 23,
+        "vulnerabilityScore": 52
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3200, 43.6550],
+          [-79.3000, 43.6550],
+          [-79.3000, 43.6700],
+          [-79.3200, 43.6700],
+          [-79.3200, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "Upper Beaches",
+        "population": 19000,
+        "seniorPercent": 24,
         "vulnerabilityScore": 50
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3400, 43.6700],
+          [-79.3200, 43.6700],
+          [-79.3200, 43.6850],
+          [-79.3400, 43.6850],
+          [-79.3400, 43.6700]
+        ]]
+      },
+      "properties": {
+        "name": "Thorncliffe Park",
+        "population": 26000,
+        "seniorPercent": 15,
+        "vulnerabilityScore": 64
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4200, 43.6850],
+          [-79.4000, 43.6850],
+          [-79.4000, 43.7000],
+          [-79.4200, 43.7000],
+          [-79.4200, 43.6850]
+        ]]
+      },
+      "properties": {
+        "name": "Lawrence Park",
+        "population": 13000,
+        "seniorPercent": 29,
+        "vulnerabilityScore": 44
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4000, 43.6850],
+          [-79.3800, 43.6850],
+          [-79.3800, 43.7000],
+          [-79.4000, 43.7000],
+          [-79.4000, 43.6850]
+        ]]
+      },
+      "properties": {
+        "name": "Bedford Park",
+        "population": 11000,
+        "seniorPercent": 31,
+        "vulnerabilityScore": 40
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3800, 43.6850],
+          [-79.3600, 43.6850],
+          [-79.3600, 43.7000],
+          [-79.3800, 43.7000],
+          [-79.3800, 43.6850]
+        ]]
+      },
+      "properties": {
+        "name": "Eglinton",
+        "population": 17000,
+        "seniorPercent": 20,
+        "vulnerabilityScore": 55
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.3600, 43.6850],
+          [-79.3400, 43.6850],
+          [-79.3400, 43.7000],
+          [-79.3600, 43.7000],
+          [-79.3600, 43.6850]
+        ]]
+      },
+      "properties": {
+        "name": "Flemingdon Park",
+        "population": 24000,
+        "seniorPercent": 14,
+        "vulnerabilityScore": 66
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.4800, 43.6250],
+          [-79.4600, 43.6250],
+          [-79.4600, 43.6400],
+          [-79.4800, 43.6400],
+          [-79.4800, 43.6250]
+        ]]
+      },
+      "properties": {
+        "name": "Parkdale",
+        "population": 20000,
+        "seniorPercent": 16,
+        "vulnerabilityScore": 69
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.5000, 43.6400],
+          [-79.4800, 43.6400],
+          [-79.4800, 43.6550],
+          [-79.5000, 43.6550],
+          [-79.5000, 43.6400]
+        ]]
+      },
+      "properties": {
+        "name": "High Park",
+        "population": 14000,
+        "seniorPercent": 22,
+        "vulnerabilityScore": 53
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.5000, 43.6550],
+          [-79.4800, 43.6550],
+          [-79.4800, 43.6700],
+          [-79.5000, 43.6700],
+          [-79.5000, 43.6550]
+        ]]
+      },
+      "properties": {
+        "name": "Swansea",
+        "population": 16000,
+        "seniorPercent": 26,
+        "vulnerabilityScore": 49
       }
     }
   ]

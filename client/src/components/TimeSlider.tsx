@@ -8,14 +8,12 @@ import { format, addDays } from "date-fns";
 interface TimeSliderProps {
   onDateChange?: (date: Date) => void;
   onDayIndexChange?: (dayIndex: number) => void;
-  initialDate?: Date;
   dayIndex?: number;
 }
 
 export default function TimeSlider({ 
   onDateChange, 
   onDayIndexChange,
-  initialDate = new Date(),
   dayIndex: controlledDayIndex 
 }: TimeSliderProps) {
   const [internalDayIndex, setInternalDayIndex] = useState(controlledDayIndex ?? 0);
@@ -43,10 +41,10 @@ export default function TimeSlider({
 
   // Memoize dates array to prevent recalculation on every render
   const dates = useMemo(() => {
-    const baseDate = new Date(initialDate);
-    baseDate.setHours(0, 0, 0, 0);
-    return Array.from({ length: 7 }, (_, i) => addDays(baseDate, i));
-  }, [initialDate]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Array.from({ length: 7 }, (_, i) => addDays(today, i));
+  }, []); // Remove initialDate dependency since we always want to start from today
 
   // Handle slider value changes - debounce to prevent skipping
   const handleSliderChange = (value: number[]) => {
@@ -116,11 +114,11 @@ export default function TimeSlider({
         
         <div className="flex-1 space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">
-              {format(dates[dayIndex], "EEEE, MMM d")}
+            <span className="text-sm font-medium" data-testid="selected-date">
+              {dayIndex === 0 ? 'Today' : format(dates[dayIndex], "EEEE, MMM d")}
             </span>
             <span className="text-xs text-muted-foreground font-mono">
-              Day {dayIndex + 1} of 7
+              {dayIndex === 0 ? 'Today' : `${dayIndex} ${dayIndex === 1 ? 'day' : 'days'} ahead`}
             </span>
           </div>
           
@@ -136,8 +134,12 @@ export default function TimeSlider({
           
           <div className="flex justify-between text-xs text-muted-foreground">
             {dates.map((date, idx) => (
-              <span key={idx} className={idx === dayIndex ? "font-semibold text-foreground" : ""}>
-                {format(date, "EEE")}
+              <span 
+                key={idx} 
+                className={idx === dayIndex ? "font-semibold text-foreground" : ""}
+                data-testid={`day-label-${idx}`}
+              >
+                {idx === 0 ? 'Today' : format(date, "EEE")}
               </span>
             ))}
           </div>
