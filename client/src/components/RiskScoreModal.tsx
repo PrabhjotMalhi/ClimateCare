@@ -27,10 +27,10 @@ export default function RiskScoreModal({ open, onOpenChange }: RiskScoreModalPro
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Badge className="bg-red-500">HSI</Badge>
-              <h3 className="text-lg font-semibold">Heat Stress Index (Weight: 40%)</h3>
+              <h3 className="text-lg font-semibold">Heat Stress Index</h3>
             </div>
             <p className="text-sm text-muted-foreground">
-              Combines maximum daily temperature, humidity levels, and recent temperature anomalies.
+              Combines maximum daily temperature, humidity levels, and recent temperature anomalies to assess heat-related health risks.
             </p>
             <div className="bg-muted p-4 rounded-md font-mono text-xs">
               <div>HSI = normalize(</div>
@@ -44,10 +44,10 @@ export default function RiskScoreModal({ open, onOpenChange }: RiskScoreModalPro
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Badge className="bg-blue-500">CSI</Badge>
-              <h3 className="text-lg font-semibold">Cold Stress Index (Weight: 30%)</h3>
+              <h3 className="text-lg font-semibold">Cold Stress Index</h3>
             </div>
             <p className="text-sm text-muted-foreground">
-              Evaluates minimum temperatures, wind chill effects, and snow cover persistence.
+              Evaluates minimum temperatures, wind chill effects, and snow cover persistence to assess cold-related health risks.
             </p>
             <div className="bg-muted p-4 rounded-md font-mono text-xs">
               <div>CSI = normalize(</div>
@@ -61,7 +61,7 @@ export default function RiskScoreModal({ open, onOpenChange }: RiskScoreModalPro
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Badge className="bg-purple-500">AQRI</Badge>
-              <h3 className="text-lg font-semibold">Air Quality Risk Index (Weight: 30%)</h3>
+              <h3 className="text-lg font-semibold">Air Quality Risk Index (Weight: 15%)</h3>
             </div>
             <p className="text-sm text-muted-foreground">
               Based on PM2.5, PM10, and NO₂ concentrations from nearest monitoring stations.
@@ -78,11 +78,12 @@ export default function RiskScoreModal({ open, onOpenChange }: RiskScoreModalPro
           <div className="border-t pt-4 space-y-3">
             <h3 className="text-lg font-semibold">Final Climate Health Risk Score</h3>
             <div className="bg-primary/10 p-4 rounded-md font-mono text-sm">
-              <div className="font-bold">Risk Score = HSI × 0.4 + CSI × 0.3 + AQRI × 0.3</div>
+              <div className="font-bold">Risk Score = max(HSI, CSI) × 0.85 + AQRI × 0.15</div>
             </div>
             <p className="text-sm text-muted-foreground">
-              All scores are normalized to a 0-100 scale. Higher scores indicate greater health risks.
-              Weights can be configured based on seasonal priorities and local conditions.
+              All scores are normalized to a 0-100 scale. The system uses the maximum of heat or cold stress 
+              indices to avoid underestimating temperature-related risks. Higher scores indicate greater health risks.
+              Air quality has a lower weight to prevent overshadowing severe temperature conditions.
             </p>
           </div>
 

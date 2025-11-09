@@ -111,13 +111,11 @@ export function calculateRiskScore(
   indices: RiskIndices,
   config: RiskConfig = defaultRiskConfig
 ): number {
-  const { weights } = config;
+  // Get the maximum between heat and cold stress indices
+  const tempStress = Math.max(indices.hsi, indices.csi);
   
-  const riskScore = (
-    indices.hsi * weights.heat +
-    indices.csi * weights.cold +
-    indices.aqri * weights.air
-  );
+  // Final score is 85% from dominant temperature stress and 15% from air quality
+  const riskScore = (tempStress * 0.85) + (indices.aqri * 0.15);
 
   return Math.round(riskScore);
 }
