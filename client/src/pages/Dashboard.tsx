@@ -132,7 +132,8 @@ export default function Dashboard() {
   };
 
   const getChartData = () => {
-    if (!selectedNeighborhood || !neighborhoods) {
+    // If no neighborhood is selected, default to the highest-risk neighborhood
+    if (!neighborhoods || neighborhoods.features.length === 0) {
       return {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         hsi: [0, 0, 0, 0, 0, 0, 0],
@@ -141,8 +142,19 @@ export default function Dashboard() {
       };
     }
 
-    const feature = neighborhoods.features.find(f => f.properties.name === selectedNeighborhood);
-    if (!feature?.properties.riskData) {
+    let feature = null;
+    if (selectedNeighborhood) {
+      feature = neighborhoods.features.find(f => f.properties.name === selectedNeighborhood) ?? null;
+    }
+
+    if (!feature) {
+      // find highest risk feature with riskData
+      feature = neighborhoods.features
+        .filter(f => f.properties && f.properties.riskData)
+        .sort((a, b) => (b.properties.riskData!.riskScore - a.properties.riskData!.riskScore))[0] ?? null;
+    }
+
+    if (!feature || !feature.properties.riskData) {
       return {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         hsi: [0, 0, 0, 0, 0, 0, 0],
